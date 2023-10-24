@@ -63,6 +63,7 @@ loadState =
       Left (_ :: IOException) -> TIO.putStrLn "State not found. Create new state" $> def
     >>= newMVar
 
+-- FIXME: don't save the default templates if they havn't been overriden
 saveState :: MVar State -> IO ()
 saveState state = readMVar state >>= TIO.writeFile "./globalState" . pack . show
 

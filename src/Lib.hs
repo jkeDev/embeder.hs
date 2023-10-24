@@ -25,7 +25,8 @@ embeder token =
               ( def
                   { discordToken = token
                   , discordOnStart = onStart
-                  , discordOnEnd = saveState state *> TIO.putStrLn "Saved State"
+                  , -- FIXME: does not save state but instead an empty map
+                    discordOnEnd = saveState state *> TIO.putStrLn "Saved State"
                   , discordOnEvent = eventHandler state
                   , discordOnLog = TIO.putStrLn
                   , discordGatewayIntent =
