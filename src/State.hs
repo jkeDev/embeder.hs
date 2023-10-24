@@ -23,11 +23,8 @@ data UserState = UserState
   , _userEmbedInstances :: Map Integer MessageId
   }
   deriving (Show, Read)
-data Template = Template {_name :: Text, _embed :: CreateEmbed}
-  deriving (Show, Eq, Read)
 
 $(makeLenses ''UserState)
-$(makeLenses ''Template)
 
 missingTexture :: CreateEmbedImage
 missingTexture = CreateEmbedImageUpload $(embedFile "missing-texture.png")
