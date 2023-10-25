@@ -57,9 +57,9 @@ executable embeder
     -- LANGUAGE extensions used by modules in this package.
     -- other-extensions:
     build-depends:
-        , base        ^>=4.15.1.0
+        , base
         , embeder
-        , file-embed
+        , text
 
     hs-source-dirs:   app
     ghc-options:      -Wall

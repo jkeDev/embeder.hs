@@ -1,10 +1,9 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell #-}
 
 module Main where
 
-import Data.FileEmbed (embedStringFile)
+import Data.Text.IO as TIO
 import Lib
 
 main :: IO ()
-main = embeder $(embedStringFile ".discord-token")
+main = TIO.readFile ".discord-token" >>= embeder
