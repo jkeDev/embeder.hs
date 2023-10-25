@@ -4,6 +4,8 @@
 module Commands where
 
 import Control.Lens as L
+import Control.Monad (join)
+import Data.Composition ((.:))
 import Data.Map as M
 import Data.Maybe (fromMaybe)
 
@@ -13,11 +15,12 @@ import Discord.Types
 
 import Helper
 import State
-import Control.Monad (join)
 
 create :: Maybe ResolvedData -> Maybe OptionsData -> InteractionId -> InteractionToken -> UserState -> DiscordHandler UserState
 create _ (Just (OptionsDataValues [OptionDataValueString "base" (Right base), OptionDataValueString "name" (Right name)])) =
-  \_ _ -> pure . L.over userEmbedTemplates (join $ M.insert name . fromMaybe def . M.lookup base)
+  \_ _ ->
+    L.traverseOf userEmbedTemplates $
+      join $ pure .: M.insert name . fromMaybe def . M.lookup base
 create _ _ = missingImplementationResponse
 
 spawn :: Maybe ResolvedData -> Maybe OptionsData -> InteractionId -> InteractionToken -> UserState -> DiscordHandler UserState
