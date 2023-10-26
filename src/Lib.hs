@@ -113,7 +113,10 @@ onStart = handleRestCallError setupCommands *> setupActivity
                   , createLocalizedName = Nothing
                   , createDescription = "Set fields of an embed"
                   , createLocalizedDescription = Nothing
-                  , createOptions = Nothing
+                  , createOptions =
+                      Just . OptionsValues $
+                        [ OptionValueString "changes" Nothing "Of the format: `[+]<key>=<value>|-<key>`" Nothing True (Left True) (Just 1) Nothing
+                        ]
                   , createDefaultMemberPermissions = Nothing
                   , createDMPermission = Just True
                   }
