@@ -11,7 +11,7 @@ import Data.Functor (void)
 import Data.Text (Text, pack)
 import Language.Haskell.TH (DecsQ)
 import Language.Haskell.TH.Syntax (Name, mkName, nameBase)
-import UnliftIO (MVar, withMVar, writeChan)
+import UnliftIO (MVar, modifyMVar_, writeChan)
 
 import Discord
 import Discord.Handle
@@ -58,4 +58,4 @@ handleChatInput ::
   (InteractionId -> InteractionToken -> UserState -> DiscordHandler UserState) ->
   DiscordHandler ()
 handleChatInput state iId iToken uId handler =
-  void . withMVar state $ adjustF'' (handler iId iToken) uId
+  void . modifyMVar_ state $ adjustF'' (handler iId iToken) uId
