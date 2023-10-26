@@ -20,13 +20,14 @@ import UnliftIO (IOException, MVar, newMVar, readMVar, try)
 type State = Map UserId UserState
 data UserState = UserState
   { _userEmbedTemplates :: Map Text CreateEmbed
-  , _userEmbedInstances :: Map Integer MessageId
+  , _userEmbedInstances :: [(MessageId, CreateEmbed)]
   }
   deriving (Show, Read)
 
 $(makeLenses ''UserState)
 
 missingTexture :: CreateEmbedImage
+-- FIXME: embeds don't work correctly with imageuploads
 missingTexture = CreateEmbedImageUpload $(embedFile "missing-texture.png")
 instance Default UserState where
   def =
@@ -50,7 +51,6 @@ instance Default UserState where
                 Nothing
             )
           , ("base", def{createEmbedTitle = "<title>", createEmbedDescription = "<desc>"})
-          , ("empty", def)
           ]
       )
       def
