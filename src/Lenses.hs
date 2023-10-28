@@ -3,7 +3,7 @@
 module Lenses where
 
 import Discord.Types as D
-
-import Helper
+import TH
 
 $(makeExternalLens ''D.CreateEmbed)
+$(makeExternalLens ''D.EmbedField)

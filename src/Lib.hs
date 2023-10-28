@@ -68,7 +68,7 @@ eventHandler
         )
     ) =
     case (uId', cData) of
-      (Just uId, ApplicationCommandDataChatInput _ "create" resolved options) -> handleChatInput' uId $ C.create resolved options
+      (Just uId, ApplicationCommandDataMessage _ "As Template" resolved message) -> handleChatInput' uId $ C.saveTemplate resolved message
       (Just uId, ApplicationCommandDataChatInput _ "spawn" resolved options) -> handleChatInput' uId $ C.spawn resolved options
       (Just uId, ApplicationCommandDataChatInput _ "set" resolved options) -> handleChatInput' uId $ C.set resolved options
       _ -> missingImplementationResponse iId iToken ()
@@ -80,19 +80,13 @@ eventHandler _ _ = pure ()
 onStart :: DiscordHandler ()
 onStart = handleRestCallError setupCommands *> setupActivity
  where
+  applicationId = fullApplicationID <$> restCall' GetCurrentApplication
   setupCommands =
-    restCall' GetCurrentApplication
+    applicationId
       >>= ( restCall' .: flip BulkOverWriteGlobalApplicationCommand $
-              [ CreateApplicationCommandChatInput
-                  { createName = "create"
+              [ CreateApplicationCommandMessage
+                  { createName = "As Template"
                   , createLocalizedName = Nothing
-                  , createDescription = "Create an embed template"
-                  , createLocalizedDescription = Nothing
-                  , createOptions =
-                      Just . OptionsValues $
-                        [ OptionValueString "base" Nothing "The base for the new template" Nothing True (Left True) (Just 1) Nothing
-                        , OptionValueString "name" Nothing "The name of the new template" Nothing True (Left False) (Just 1) Nothing
-                        ]
                   , createDefaultMemberPermissions = Nothing
                   , createDMPermission = Just True
                   }
@@ -104,6 +98,7 @@ onStart = handleRestCallError setupCommands *> setupActivity
                   , createOptions =
                       Just . OptionsValues $
                         [ OptionValueString "name" Nothing "The name of the template" Nothing True (Left True) (Just 1) Nothing
+                        , OptionValueString "id" Nothing "Id of the instance" Nothing True (Left True) (Just 1) Nothing
                         ]
                   , createDefaultMemberPermissions = Nothing
                   , createDMPermission = Just True
@@ -115,14 +110,14 @@ onStart = handleRestCallError setupCommands *> setupActivity
                   , createLocalizedDescription = Nothing
                   , createOptions =
                       Just . OptionsValues $
-                        [ OptionValueString "changes" Nothing "Of the format: `[+]<key>=<value>|-<key>`" Nothing True (Left True) (Just 1) Nothing
+                        [ OptionValueString "id" Nothing "Id of the instance" Nothing True (Left True) (Just 1) Nothing
+                        , OptionValueString "changes" Nothing "Of the format: `[+]<key>=<value>|-<key>`" Nothing True (Left True) (Just 1) Nothing
                         ]
                   , createDefaultMemberPermissions = Nothing
                   , createDMPermission = Just True
                   }
               ]
           )
-        . fullApplicationID
   setupActivity =
     sendCommand . UpdateStatus $
       UpdateStatusOpts

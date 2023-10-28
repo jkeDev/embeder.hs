@@ -4,13 +4,9 @@
 
 module Helper where
 
-import Control.Lens.Internal.FieldTH (LensRules (_fieldToDef))
-import Control.Lens.TH
 import Control.Monad.Reader (asks, liftIO)
 import Data.Functor (void)
 import Data.Text (Text, pack)
-import Language.Haskell.TH (DecsQ)
-import Language.Haskell.TH.Syntax (Name, mkName, nameBase)
 import UnliftIO (MVar, modifyMVar_, writeChan)
 
 import Discord
@@ -26,29 +22,31 @@ writeLog :: Text -> DiscordHandler ()
 writeLog msg = asks (writeChan . discordHandleLog) <*> pure msg >>= liftIO
 
 handleRestCallError :: (DiscordHandler :>: Either RestCallErrorCode) () -> DiscordHandler ()
-handleRestCallError res = runUT res >>= either (writeLog . pack . show) pure
+handleRestCallError = handleRestCallError' ()
+handleRestCallError' :: a -> (DiscordHandler :>: Either RestCallErrorCode) a -> DiscordHandler a
+handleRestCallError' a res = runUT res >>= either (fmap (const a) . writeLog . pack . show) pure
 
 restCall' :: (Request (r a), FromJSON a) => r a -> (DiscordHandler :>: Either RestCallErrorCode) a
 restCall' = (:>:) . restCall
 
 missingImplementationResponse :: InteractionId -> InteractionToken -> a -> DiscordHandler a
-missingImplementationResponse iId iToken state =
-  fmap (const state)
-    . handleRestCallError
-    . restCall'
+missingImplementationResponse = errorResponse "**Implementation error for command**"
+errorResponse :: Text -> InteractionId -> InteractionToken -> a -> DiscordHandler a
+errorResponse msg iId iToken state = fmap (const state) . handleRestCallError $ statusResponse msg iId iToken
+statusResponse :: Text -> InteractionId -> InteractionToken -> (DiscordHandler :>: Either RestCallErrorCode) ()
+statusResponse msg iId iToken =
+  restCall'
     . CreateInteractionResponse iId iToken
     . InteractionResponseChannelMessage
-    $ InteractionResponseMessage (Just False) (Just "**Implementation error for command**") Nothing Nothing Nothing Nothing Nothing
+    $ InteractionResponseMessage
+      (pure False)
+      (pure msg)
+      Nothing
+      Nothing
+      (pure . InteractionResponseMessageFlags . pure $ InteractionResponseMessageFlagEphermeral)
+      Nothing
+      Nothing
 
-makeExternalLens :: Name -> DecsQ
-makeExternalLens =
-  makeLensesWith $
-    lensRules
-      { _fieldToDef = \_ _ n ->
-          case nameBase n of
-            x : xs -> [TopName . mkName $ x : xs]
-            _ -> []
-      }
 
 handleChatInput ::
   MVar State ->
